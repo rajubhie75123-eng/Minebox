@@ -1,1 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anime Salt - Watch Free Anime Online</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { background: #0b0c10; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+    
+    /* Navbar & Search */
+    header { background: #14161f; padding: 15px 20px; border-bottom: 1px solid #232736; position: sticky; top: 0; z-index: 100; }
+    .nav-container { max-width: 1200px; margin: auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px; }
+    .logo { font-size: 24px; font-weight: bold; color: #ff4757; text-decoration: none; letter-spacing: 1px; }
+    .logo span { color: #fff; }
+    #search { width: 100%; max-width: 320px; padding: 10px 15px; border-radius: 20px; border: 1px solid #2f3542; background: #1e212d; color: #fff; outline: none; }
+    #search:focus { border-color: #ff4757; }
 
+    /* Main Container */
+    .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
+
+    /* Language Filter Bar */
+    .filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 25px; }
+    .filter-btn { background: #1e212d; color: #ccc; border: 1px solid #2f3542; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; transition: 0.2s; }
+    .filter-btn.active, .filter-btn:hover { background: #ff4757; color: #fff; border-color: #ff4757; }
+
+    /* Video Player Section */
+    #player-section { display: none; background: #14161f; padding: 20px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #232736; }
+    .player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .player-header h2 { margin: 0; font-size: 20px; color: #ff4757; }
+    .close-btn { background: #2f3542; color: #fff; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    .close-btn:hover { background: #ff4757; }
+    .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; background: #000; }
+    .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+    /* Controls (Servers & Episodes) */
+    .control-label { font-size: 12px; color: #8892b0; margin: 15px 0 8px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .srv-btn, .ep-btn { background: #232736; color: #fff; border: 1px solid #32384d; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.2s; }
+    .srv-btn.active, .ep-btn.active, .srv-btn:hover, .ep-btn:hover { background: #ff4757; border-color: #ff4757; }
+
+    /* Anime Grid */
+    .section-title { font-size: 18px; margin-bottom: 15px; border-left: 4px solid #ff4757; padding-left: 10px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 18px; }
+    .card { background: #14161f; border-radius: 10px; overflow: hidden; cursor: pointer; transition: transform 0.25s; border: 1px solid #232736; }
+    .card:hover { transform: translateY(-5px); border-color: #ff4757; }
+    .card img { width: 100%; height: 240px; object-fit: cover; display: block; }
+    .card-info { padding: 12px; }
+    .card-title { font-size: 15px; font-weight: bold; margin: 0 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-meta { display: flex; justify-content: space-between; align-items: center; }
+    .badge-lang { font-size: 11px; background: #ff4757; color: #fff; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+    .badge-ep { font-size: 12px; color: #a4b0be; }
+
+    /* Footer */
+    footer { text-align: center; padding: 25px; margin-top: 40px; border-top: 1px solid #232736; color: #747d8c; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <a href="#" class="logo">ANIME<span>SALT</span></a>
+      <input type="text" id="search" placeholder="Search anime name..." onkeyup="applyFilters()">
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Language Filters -->
+    <div class="filters">
+      <button class="filter-btn active" onclick="setLang('All', this)">All Anime</button>
+      <button class="filter-btn" onclick="setLang('Hindi', this)">Hindi Dub</button>
+      <button class="filter-btn" onclick="setLang('Tamil', this)">Tamil Dub</button>
+      <button class="filter-btn" onclick="setLang('Telugu', this)">Telugu Dub</button>
+      <button class="filter-btn" onclick="setLang('Sub', this)">Japanese Sub</button>
+    </div>
+
+    <!-- Video Player Box -->
+    <div id="player-section">
+      <div class="player-header">
+        <h2 id="now-playing">Anime Title - Ep 1</h2>
+        <button class="close-btn" onclick="closePlayer()">✕ Close</button>
+      </div>
+      <div class="video-wrapper">
+        <iframe id="video-frame" allowfullscreen></iframe>
+      </div>
+
+      <div class="control-label">Switch Server:</div>
+      <div class="btn-group" id="server-buttons"></div>
+
+      <div class="control-label">Select Episode:</div>
+      <div class="btn-group" id="episode-buttons"></div>
+    </div>
+
+    <!-- Anime Cards Grid -->
+    <div class="section-title">Latest Releases</div>
+    <div class="grid" id="anime-grid">Loading anime from Google Sheets...</div>
+  </div>
+
+  <footer>
+    &copy; 2026 Anime Salt Clone. All rights reserved.
+  </footer>
+
+  <script>
+    // ========================================================
+    // APNA GOOGLE SHEET CSV LINK NICHE PASTE KAREIN
+    // ========================================================
+    const SHEET_CSV_URL = "YOUR_GOOGLE_SHEET_CSV_LINK_HERE";
+    
+    let groupedAnime = [];
+    let currentLang = "All";
+
+    // CSV Parser (Commas aur Quotes ko safely handle karne ke liye)
+    function parseCSVRow(row) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < row.length; i++) {
+        const char = row[i];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      return result;
+    }
+
+    // Google Sheet se Data Load Karna
+    async function loadAnimeFromSheet() {
+      try {
+        const res = await fetch(SHEET_CSV_URL);
+        const text = await res.text();
+        const rows = text.split(/\r?\n/).slice(1).filter(r => r.trim() !== "");
+        
+        const animeMap = {};
+
+        rows.forEach(row => {
+          const cols = parseCSVRow(row);
+          const title = cols[0] || "";
+          const ep = cols[1] || "Ep 1";
+          const lang = cols[2] || "Sub";
+          const poster = cols[3] || "https://placeholder.com";
+          const srv1 = cols[4] || "";
+          const srv2 = cols[5] || "";
+
+          if (!title) return;
+
+          if (!animeMap[title]) {
+            animeMap[title] = { title, lang, poster, episodes: [] };
+          }
+          animeMap[title].episodes.push({ ep, srv1, srv2 });
+        });
+
+        groupedAnime = Object.values(animeMap);
+        renderCards(groupedAnime);
+      } catch (error) {
+        document.getElementById("anime-grid").innerHTML = "<p style='color:#ff4757;'>Data load nahi ho paya. Kripya apna Google Sheet CSV link check karein.</p>";
+      }
+    }
+
+    // Cards Render Karna
+    function renderCards(list) {
+      const grid = document.getElementById("anime-grid");
+      grid.innerHTML = list.length ? "" : "<p>Koi anime nahi mila.</p>";
+
+      list.forEach(anime => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <img src="${anime.poster}" alt="${anime.title}">
+          <div class="card-info">
+            <div class="card-title">${anime.title}</div>
+            <div class="card-meta">
+              <span class="badge-lang">${anime.lang}</span>
+              <span class="badge-ep">${anime.episodes.length} Eps</span>
+            </div>
+          </div>
+        `;
+        card.onclick = () => openAnime(anime);
+        grid.appendChild(card);
+      });
+    }
+
+    // Anime Player Kholna
+    function openAnime(anime) {
+      const playerSec = document.getElementById("player-section");
+      const epDiv = document.getElementById("episode-buttons");
+      epDiv.innerHTML = "";
+
+      anime.episodes.forEach((epObj, index) => {
+        const btn = document.createElement("button");
+        btn.className = "ep-btn" + (index === 0 ? " active" : "");
+        btn.innerText = epObj.ep;
+        btn.onclick = () => {
+          document.querySelectorAll(".ep-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          loadEpisode(anime.title, anime.lang, epObj);
+        };
+        epDiv.appendChild(btn);
+      });
+
+      if (anime.episodes.length > 0) {
+        loadEpisode(anime.title, anime.lang, anime.episodes[0]);
+      }
+      playerSec.style.display = "block";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // Episode aur Server Load Karna
+    function loadEpisode(title, lang, epObj) {
+      const frame = document.getElementById("video-frame");
+      const srvDiv = document.getElementById("server-buttons");
+      document.getElementById("now-playing").innerText = `${title} - ${epObj.ep} (${lang})`;
+      srvDiv.innerHTML = "";
+
+      if (epObj.srv1) {
+        const btn1 = document.createElement("button");
+        btn1.className = "srv-btn active";
+        btn1.innerText = "Server 1";
+        btn1.onclick = () => switchServer(epObj.srv1, btn1);
+        srvDiv.appendChild(btn1);
+        frame.src = epObj.srv1;
+      }
